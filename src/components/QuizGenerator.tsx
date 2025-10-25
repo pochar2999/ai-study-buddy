@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../lib/database';
-import { Quiz } from '../lib/supabase';
+import { Quiz, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { Sparkles, Trash2, CheckCircle2, XCircle } from 'lucide-react';
@@ -49,11 +49,11 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`,
+        `${supabaseUrl}/functions/v1/generate-quiz`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { db } from '../lib/database';
+import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { Upload, Loader } from 'lucide-react';
@@ -41,11 +42,11 @@ export function AudioUpload({ classId, onTranscriptionComplete }: AudioUploadPro
         const base64Audio = reader.result as string;
 
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`,
+          `${supabaseUrl}/functions/v1/transcribe-audio`,
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'Authorization': `Bearer ${supabaseAnonKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
