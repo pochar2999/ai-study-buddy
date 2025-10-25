@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../lib/database';
 import { Note } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface NoteInputProps {
@@ -13,6 +14,7 @@ export function NoteInput({ classId }: NoteInputProps) {
   const [newNote, setNewNote] = useState('');
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     loadNotes();
@@ -28,14 +30,19 @@ export function NoteInput({ classId }: NoteInputProps) {
   };
 
   const handleAddNote = async () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim()) {
+      showNotification('warning', 'Note content cannot be empty');
+      return;
+    }
     setLoading(true);
     try {
       const note = await db.createNote(classId, newNote.trim());
       setNotes([note, ...notes]);
       setNewNote('');
+      showNotification('success', 'Note added successfully!');
     } catch (error) {
       console.error('Error adding note:', error);
+      showNotification('error', 'Failed to add note. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -46,8 +53,10 @@ export function NoteInput({ classId }: NoteInputProps) {
     try {
       await db.deleteNote(id);
       setNotes(notes.filter(n => n.id !== id));
+      showNotification('success', 'Note deleted successfully!');
     } catch (error) {
       console.error('Error deleting note:', error);
+      showNotification('error', 'Failed to delete note. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -55,7 +64,7 @@ export function NoteInput({ classId }: NoteInputProps) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">{t('addNote')}</h3>
         <textarea
           value={newNote}
@@ -67,21 +76,22 @@ export function NoteInput({ classId }: NoteInputProps) {
         <button
           onClick={handleAddNote}
           disabled={loading || !newNote.trim()}
-          className="mt-3 flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="mt-3 flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-5 h-5" />
-          {t('addNote')}
+          {loading ? 'Adding...' : t('addNote')}
         </button>
       </div>
 
       {notes.length === 0 ? (
-        <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
-          {t('noNotes')}
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
+          <p className="text-gray-600 text-lg font-medium mb-2">{t('noNotes')}</p>
+          <p className="text-gray-500 text-sm">Add your first note above to get started with flashcards and quizzes!</p>
         </div>
       ) : (
         <div className="space-y-3">
           {notes.map((note) => (
-            <div key={note.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={note.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <p className="text-gray-700 whitespace-pre-wrap">{note.content}</p>

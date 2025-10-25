@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../lib/database';
 import { Flashcard } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { Sparkles, Trash2, RotateCcw } from 'lucide-react';
 
 interface FlashcardGeneratorProps {
@@ -15,6 +16,7 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const { t, language } = useLanguage();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     loadFlashcards();
@@ -64,10 +66,13 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
         const created = await db.createFlashcards(newFlashcards);
         setFlashcards([...created, ...flashcards]);
         setTopics('');
+        showNotification('success', `Generated ${created.length} flashcard${created.length > 1 ? 's' : ''} successfully!`);
+      } else {
+        showNotification('warning', 'No flashcards were generated. Try adding more notes or specifying topics.');
       }
     } catch (error) {
       console.error('Error generating flashcards:', error);
-      alert('Error generating flashcards. Please try again.');
+      showNotification('error', 'Failed to generate flashcards. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,19 +82,24 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
     try {
       await db.deleteFlashcard(id);
       setFlashcards(flashcards.filter(fc => fc.id !== id));
+      showNotification('success', 'Flashcard deleted successfully!');
     } catch (error) {
       console.error('Error deleting flashcard:', error);
+      showNotification('error', 'Failed to delete flashcard. Please try again.');
     }
   };
 
   const handleDeleteTopic = async (topic: string) => {
     if (!confirm(`${t('deleteTopic')}: ${topic}?`)) return;
     try {
+      const count = flashcards.filter(fc => fc.topic === topic).length;
       await db.deleteFlashcardsByTopic(classId, topic);
       setFlashcards(flashcards.filter(fc => fc.topic !== topic));
       if (selectedTopic === topic) setSelectedTopic('all');
+      showNotification('success', `Deleted ${count} flashcard${count > 1 ? 's' : ''} from topic "${topic}"`);
     } catch (error) {
       console.error('Error deleting topic:', error);
+      showNotification('error', 'Failed to delete topic. Please try again.');
     }
   };
 
@@ -109,8 +119,8 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
     : flashcards.filter(fc => fc.topic === selectedTopic);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">{t('generateFlashcards')}</h3>
         <input
           type="text"
@@ -122,7 +132,7 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:from-cyan-700 hover:to-blue-700 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Sparkles className="w-5 h-5" />
           {loading ? t('generating') : t('generateFlashcards')}
@@ -130,7 +140,7 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
       </div>
 
       {uniqueTopics.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
           <h4 className="text-md font-semibold text-gray-900 mb-3">{t('topics')}</h4>
           <div className="flex flex-wrap gap-2">
             <button
@@ -171,8 +181,9 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
       )}
 
       {filteredCards.length === 0 ? (
-        <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
-          {t('noFlashcards')}
+        <div className="bg-gradient-to-br from-gray-50 to-cyan-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
+          <p className="text-gray-600 text-lg font-medium mb-2">{t('noFlashcards')}</p>
+          <p className="text-gray-500 text-sm">Generate flashcards from your notes using the form above!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -181,7 +192,7 @@ export function FlashcardGenerator({ classId }: FlashcardGeneratorProps) {
             return (
               <div
                 key={card.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
+                className="bg-white rounded-lg shadow-md overflow-hidden card-flip"
               >
                 <div className="p-6 min-h-[200px] flex flex-col">
                   <div className="flex items-center justify-between mb-4">

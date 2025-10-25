@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../lib/database';
 import { Quiz } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { Sparkles, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 
 interface QuizGeneratorProps {
@@ -17,6 +18,7 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
   const [quizSource, setQuizSource] = useState<'notes' | 'flashcards'>('notes');
   const [topics, setTopics] = useState('');
   const { t, language } = useLanguage();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     loadQuizzes();
@@ -70,10 +72,13 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
         const quiz = await db.createQuiz(classId, title, result.questions);
         setQuizzes([quiz, ...quizzes]);
         setTopics('');
+        showNotification('success', `Quiz generated with ${result.questions.length} question${result.questions.length > 1 ? 's' : ''}!`);
+      } else {
+        showNotification('warning', 'No quiz questions were generated. Try adding more content.');
       }
     } catch (error) {
       console.error('Error generating quiz:', error);
-      alert('Error generating quiz. Please try again.');
+      showNotification('error', 'Failed to generate quiz. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -87,8 +92,10 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
       if (activeQuiz?.id === id) {
         setActiveQuiz(null);
       }
+      showNotification('success', 'Quiz deleted successfully!');
     } catch (error) {
       console.error('Error deleting quiz:', error);
+      showNotification('error', 'Failed to delete quiz. Please try again.');
     }
   };
 
@@ -221,8 +228,8 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">{t('generateQuiz')}</h3>
 
         <div className="space-y-4">
@@ -265,7 +272,7 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-blue-600 text-white rounded-lg hover:from-emerald-700 hover:to-blue-700 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Sparkles className="w-5 h-5" />
             {loading ? t('generating') : t('generateQuiz')}
@@ -274,13 +281,14 @@ export function QuizGenerator({ classId }: QuizGeneratorProps) {
       </div>
 
       {quizzes.length === 0 ? (
-        <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
-          {t('noQuizzes')}
+        <div className="bg-gradient-to-br from-gray-50 to-emerald-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
+          <p className="text-gray-600 text-lg font-medium mb-2">{t('noQuizzes')}</p>
+          <p className="text-gray-500 text-sm">Generate a quiz from your notes or flashcards using the form above!</p>
         </div>
       ) : (
         <div className="space-y-4">
           {quizzes.map((quiz) => (
-            <div key={quiz.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={quiz.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-lg font-semibold text-gray-900">{quiz.title}</h4>

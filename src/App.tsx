@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { Auth } from './components/Auth';
 import { ClassManager } from './components/ClassManager';
 import { NoteInput } from './components/NoteInput';
@@ -32,31 +33,31 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
       <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">{t('appTitle')}</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{t('appTitle')}</h1>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <LanguageSelector />
               <button
                 onClick={() => signOut()}
-                className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-100 text-red-700 text-sm sm:text-base rounded-lg hover:bg-red-200 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="lg:col-span-1">
             <ClassManager
               selectedClassId={selectedClassId}
@@ -73,10 +74,10 @@ function AppContent() {
             ) : (
               <>
                 <div className="bg-white rounded-lg shadow-md mb-6">
-                  <div className="flex border-b border-gray-200">
+                  <div className="flex border-b border-gray-200 overflow-x-auto">
                     <button
                       onClick={() => setActiveTab('notes')}
-                      className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+                      className={`flex-1 px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold transition-colors whitespace-nowrap ${
                         activeTab === 'notes'
                           ? 'text-blue-600 border-b-2 border-blue-600'
                           : 'text-gray-600 hover:text-gray-900'
@@ -86,7 +87,7 @@ function AppContent() {
                     </button>
                     <button
                       onClick={() => setActiveTab('flashcards')}
-                      className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+                      className={`flex-1 px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold transition-colors whitespace-nowrap ${
                         activeTab === 'flashcards'
                           ? 'text-blue-600 border-b-2 border-blue-600'
                           : 'text-gray-600 hover:text-gray-900'
@@ -96,7 +97,7 @@ function AppContent() {
                     </button>
                     <button
                       onClick={() => setActiveTab('quizzes')}
-                      className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+                      className={`flex-1 px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold transition-colors whitespace-nowrap ${
                         activeTab === 'quizzes'
                           ? 'text-blue-600 border-b-2 border-blue-600'
                           : 'text-gray-600 hover:text-gray-900'
@@ -106,18 +107,19 @@ function AppContent() {
                     </button>
                     <button
                       onClick={() => setActiveTab('audio')}
-                      className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+                      className={`flex-1 px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold transition-colors whitespace-nowrap ${
                         activeTab === 'audio'
                           ? 'text-blue-600 border-b-2 border-blue-600'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
-                      {t('audioUpload')}
+                      <span className="hidden sm:inline">{t('audioUpload')}</span>
+                      <span className="sm:hidden">Audio</span>
                     </button>
                   </div>
                 </div>
 
-                <div>
+                <div className="animate-fade-in">
                   {activeTab === 'notes' && <NoteInput classId={selectedClassId} />}
                   {activeTab === 'flashcards' && <FlashcardGenerator classId={selectedClassId} />}
                   {activeTab === 'quizzes' && <QuizGenerator classId={selectedClassId} />}
@@ -141,7 +143,9 @@ export default function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <AppContent />
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
       </LanguageProvider>
     </AuthProvider>
   );

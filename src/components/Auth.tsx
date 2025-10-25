@@ -29,8 +29,8 @@ export function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 animate-fade-in">
         <div className="flex items-center justify-center mb-8">
           <BookOpen className="w-12 h-12 text-blue-600 mr-3" />
           <h1 className="text-3xl font-bold text-gray-900">AI Study Buddy</h1>

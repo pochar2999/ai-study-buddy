@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { db } from '../lib/database';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { Upload, Loader } from 'lucide-react';
 
 interface AudioUploadProps {
@@ -12,6 +13,7 @@ export function AudioUpload({ classId, onTranscriptionComplete }: AudioUploadPro
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState('');
   const { t, language } = useLanguage();
+  const { showNotification } = useNotification();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -19,12 +21,12 @@ export function AudioUpload({ classId, onTranscriptionComplete }: AudioUploadPro
 
     const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a'];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload an MP3, WAV, or M4A file');
+      showNotification('error', 'Please upload an MP3, WAV, or M4A file');
       return;
     }
 
     if (file.size > 25 * 1024 * 1024) {
-      alert('File size must be less than 25MB');
+      showNotification('error', 'File size must be less than 25MB');
       return;
     }
 
@@ -58,6 +60,7 @@ export function AudioUpload({ classId, onTranscriptionComplete }: AudioUploadPro
         if (result.text) {
           await db.createNote(classId, result.text, 'audio');
           setProgress(t('transcriptionComplete'));
+          showNotification('success', 'Audio transcribed and saved as note!');
           if (onTranscriptionComplete) {
             onTranscriptionComplete();
           }
@@ -75,7 +78,7 @@ export function AudioUpload({ classId, onTranscriptionComplete }: AudioUploadPro
       };
     } catch (error) {
       console.error('Error uploading audio:', error);
-      alert('Error transcribing audio. Please try again.');
+      showNotification('error', 'Failed to transcribe audio. Please try again.');
       setLoading(false);
       setProgress('');
     }
@@ -84,7 +87,7 @@ export function AudioUpload({ classId, onTranscriptionComplete }: AudioUploadPro
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <h3 className="text-lg font-bold text-gray-900 mb-4">{t('uploadAudio')}</h3>
 
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
