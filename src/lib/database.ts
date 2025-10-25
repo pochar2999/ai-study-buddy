@@ -13,12 +13,11 @@ export const db = {
   },
 
   async createClass(name: string): Promise<Class> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const mockUserId = 'anonymous-user';
 
     const { data, error } = await supabase
       .from('classes')
-      .insert({ name, user_id: user.id })
+      .insert({ name, user_id: mockUserId })
       .select()
       .single();
 

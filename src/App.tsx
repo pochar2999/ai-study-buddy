@@ -1,36 +1,18 @@
 import { useState } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { Auth } from './components/Auth';
 import { ClassManager } from './components/ClassManager';
 import { NoteInput } from './components/NoteInput';
 import { FlashcardGenerator } from './components/FlashcardGenerator';
 import { QuizGenerator } from './components/QuizGenerator';
 import { AudioUpload } from './components/AudioUpload';
 import { LanguageSelector } from './components/LanguageSelector';
-import { BookOpen, LogOut } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 function AppContent() {
-  const { user, loading: authLoading, signOut } = useAuth();
   const { t } = useLanguage();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'notes' | 'flashcards' | 'quizzes' | 'audio'>('notes');
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <BookOpen className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Auth />;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
@@ -44,13 +26,6 @@ function AppContent() {
 
             <div className="flex items-center gap-2 sm:gap-4">
               <LanguageSelector />
-              <button
-                onClick={() => signOut()}
-                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-100 text-red-700 text-sm sm:text-base rounded-lg hover:bg-red-200 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
             </div>
           </div>
         </div>
@@ -141,12 +116,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <NotificationProvider>
-          <AppContent />
-        </NotificationProvider>
-      </LanguageProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
+    </LanguageProvider>
   );
 }
